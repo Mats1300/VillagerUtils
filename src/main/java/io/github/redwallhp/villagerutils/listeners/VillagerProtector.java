@@ -107,9 +107,9 @@ public class VillagerProtector implements Listener {
             return;
         }
 
-        PotionType type = event.getEntity().getBasePotionData().getType();
+        PotionType type = event.getEntity().getBasePotionType();
         List<PotionType> blacklist = new ArrayList<PotionType>();
-        blacklist.add(PotionType.INSTANT_DAMAGE);
+        blacklist.add(PotionType.HARMING);
         blacklist.add(PotionType.POISON);
         blacklist.add(PotionType.SLOWNESS);
         blacklist.add(PotionType.WEAKNESS);

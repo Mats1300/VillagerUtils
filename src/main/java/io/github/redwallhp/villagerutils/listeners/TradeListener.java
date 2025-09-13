@@ -1,8 +1,6 @@
 package io.github.redwallhp.villagerutils.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import io.github.redwallhp.villagerutils.TradeDraft;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractVillager;
@@ -15,7 +13,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.MerchantRecipe;
 
 import io.github.redwallhp.villagerutils.VillagerUtils;
 
@@ -40,20 +37,22 @@ public class TradeListener implements Listener {
     public void onInventoryClose(InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
         if (!isTradeEditingView(event.getView()) ||
-            !plugin.getWorkspaceManager().hasWorkspace(player)) {
+                !plugin.getWorkspaceManager().hasWorkspace(player)) {
             return;
         }
 
-        MerchantRecipe oldRecipe = plugin.getWorkspaceManager().getWorkspace(player);
-        MerchantRecipe newRecipe = new MerchantRecipe(event.getInventory().getItem(8), oldRecipe.getUses());
-        List<ItemStack> ingredients = new ArrayList<ItemStack>();
-        for (int i = 0; i <= 1; i++) {
-            ItemStack item = event.getInventory().getItem(i);
-            if (item != null)
-                ingredients.add(item);
-        }
-        newRecipe.setIngredients(ingredients);
-        plugin.getWorkspaceManager().setWorkspace(player, newRecipe);
+        TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
+        if (draft == null) return;
+
+        ItemStack result = event.getInventory().getItem(8);
+        ItemStack buyOne = event.getInventory().getItem(0);
+        ItemStack buyTwo = event.getInventory().getItem(1);
+
+        draft.setResult(result);
+        draft.setBuyItems(buyOne, buyTwo);
+
+        plugin.getWorkspaceManager().setWorkspace(player, draft, null);
+
         player.sendMessage(ChatColor.DARK_AQUA + "Trade items updated.");
     }
 

@@ -51,7 +51,7 @@ public class RefreshTradesCommand extends AbstractCommand {
         target.setRecipes(recipes);
 
         Location particleLoc = target.getLocation().add(0, 1.5, 0);
-        particleLoc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, particleLoc, 10, 0.5, 0.5, 0.5);
+        particleLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, particleLoc, 10, 0.5, 0.5, 0.5);
         player.sendMessage(ChatColor.DARK_AQUA + "Villager trades refreshed.");
         return true;
     }

@@ -1,33 +1,72 @@
 package io.github.redwallhp.villagerutils.commands.vtrade;
 
 import java.util.Random;
-
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.MerchantRecipe;
-
+import io.github.redwallhp.villagerutils.TradeDraft;
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
 
+/**
+ * Command to create a new villager trade workspace for the player.
+ * <p>
+ * Usage: <code>/vtrade new [<maxuses>|max]</code>
+ * </p>
+ * <p>
+ * This command initializes a new {@link TradeDraft} with a specified maximum
+ * number of uses. If no value is provided, a random vanilla range (2–12) is used.
+ * </p>
+ * <p>
+ * Permissions required: <code>villagerutils.editvillager</code>
+ * </p>
+ */
 public class NewVtradeCommand extends AbstractCommand {
 
+    /**
+     * Constructs the command with the plugin instance and required permission.
+     *
+     * @param plugin the main {@link VillagerUtils} plugin instance
+     */
     public NewVtradeCommand(VillagerUtils plugin) {
         super(plugin, "villagerutils.editvillager");
     }
 
+    /**
+     * Gets the name of this command.
+     *
+     * @return the name of the command ("new")
+     */
     @Override
     public String getName() {
         return "new";
     }
 
+    /**
+     * Gets the usage message for this command.
+     *
+     * @return a string describing the command usage
+     */
     @Override
     public String getUsage() {
         return "/vtrade new [<maxuses>|max]";
     }
 
+    /**
+     * Executes the command action when a player issues it.
+     * <p>
+     * If the sender is not a player, the command will fail. If no maximum uses
+     * are provided, a random value between 2 and 12 is used. If the argument is
+     * "max", the maximum integer value is used.
+     * </p>
+     * <p>
+     * This method creates a new {@link TradeDraft} and stores it in the player's workspace.
+     * </p>
+     *
+     * @param sender the command sender
+     * @param args   optional arguments; first argument can be an integer or "max"
+     * @return true if the command was successfully executed, false otherwise
+     */
     @Override
     public boolean action(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
@@ -36,34 +75,24 @@ public class NewVtradeCommand extends AbstractCommand {
         }
         Player player = (Player) sender;
 
-        if (args.length > 1) {
-            player.sendMessage(ChatColor.RED + "Unexpected arguments. Usage: " + getUsage());
-            return false;
-        }
-
         int limit;
         if (args.length == 0) {
-            // random int from 2-12, based on vanilla distribution
-            limit = new Random().nextInt(11) + 2;
-        } else { // (args.length == 1)
+            limit = new Random().nextInt(11) + 2; // vanilla range
+        } else {
             try {
                 limit = args[0].equalsIgnoreCase("max") ? Integer.MAX_VALUE : Integer.parseInt(args[0]);
             } catch (NumberFormatException ex) {
-                player.sendMessage(ChatColor.RED + "The number of uses must be an integer or the word 'max'.");
+                player.sendMessage(ChatColor.RED + "Number of uses must be an integer or 'max'.");
                 return false;
             }
         }
 
-        // Create recipe with uses = maxUses = limit, or they both end up as 0.
-        // Probable bug in Paper 525.
-        MerchantRecipe recipe = new MerchantRecipe(new ItemStack(Material.AIR, 1), limit, limit, true);
-        // Oh, to be sure, to be sure.
-        recipe.setMaxUses(limit);
-        recipe.setUses(limit);
-        plugin.getWorkspaceManager().setWorkspace(player, recipe);
-        player.sendMessage(ChatColor.DARK_AQUA + "You have created a new blank villager trade with at most " + limit + " uses before locking.");
-        player.sendMessage(ChatColor.ITALIC + "Next: modify the trade items with /vtrade items");
+        TradeDraft draft = new TradeDraft(limit);
+        plugin.getWorkspaceManager().setWorkspace(player, draft, null); // no villager yet
+
+        player.sendMessage(ChatColor.DARK_AQUA + "New villager trade created with max " + limit + " uses.");
+        player.sendMessage(ChatColor.ITALIC + "Next: /vtrade items to edit the trade items.");
         return true;
     }
-
 }
+

@@ -25,7 +25,11 @@ public class VillagerUtils extends JavaPlugin {
         configuration = new Configuration();
         villagerMeta = new VillagerMeta();
 
-        getSavedVillagersDirectory().mkdir();
+        // Ensure the saved-villagers directory exists
+        File savedVillagersDir = getSavedVillagersDirectory();
+        if (!savedVillagersDir.exists() && !savedVillagersDir.mkdir()) {
+            getLogger().warning("Could not create saved-villagers directory!");
+        }
 
         new CommandManager();
         new TradeListener();

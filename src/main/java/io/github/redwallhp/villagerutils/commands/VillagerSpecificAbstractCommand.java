@@ -16,7 +16,7 @@ import io.github.redwallhp.villagerutils.helpers.VillagerHelper;
  */
 public abstract class VillagerSpecificAbstractCommand extends AbstractCommand {
     /**
-     * Contstructor.
+     * Constructor.
      * 
      * @param plugin the owning plugin.
      * @param permission the command permission.
@@ -27,9 +27,9 @@ public abstract class VillagerSpecificAbstractCommand extends AbstractCommand {
 
     /**
      * Return the Villager (but not other AbstractVillager subtypes) in the
-     * players's line of sight, and send appropriate error messages to the
+     * player line of sight, and send appropriate error messages to the
      * player if they are looking at something else.
-     * 
+     * <p>
      * The intended purpose of this method is to return a Villager instance for
      * use in commands that perform Villager-specific actions where just any
      * AbstractVillager (such as WanderingTrader) would not be appropriate.
@@ -38,7 +38,7 @@ public abstract class VillagerSpecificAbstractCommand extends AbstractCommand {
      * @param wanderingTraderMessage the error message to send if the player is
      *        looking at a WanderingTrader.
      * @return the Villager (but not other AbstractVillager subtypes) in the
-     *         players's line of sight, or null if the player is not a Villager.
+     *         player line of sight, or null if the player is not a Villager.
      */
     public Villager getVillagerInLineOfSight(Player player, String wanderingTraderMessage) {
         AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);

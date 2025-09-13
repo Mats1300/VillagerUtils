@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.github.redwallhp.villagerutils.TradeDraft;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
 import org.bukkit.inventory.MerchantRecipe;
 
 import io.github.redwallhp.villagerutils.VillagerUtils;
@@ -42,25 +44,42 @@ public class GetTradeCommand extends AbstractCommand implements TabCompleter {
 
         Player player = (Player) sender;
         AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
-        if (target == null) {
+        if (!(target instanceof Villager)) {
             player.sendMessage(ChatColor.RED + "You're not looking at a villager.");
             return false;
         }
+
+        Villager villager = (Villager) target;
 
         if (args.length != 1) {
             player.sendMessage(ChatColor.RED + "Invalid arguments. Usage: " + getUsage());
             return false;
         }
 
-        List<MerchantRecipe> recipes = target.getRecipes();
+        List<MerchantRecipe> recipes = villager.getRecipes();
         try {
             int position = Integer.parseInt(args[0]);
             if (position >= 1 && position <= recipes.size()) {
-                plugin.getWorkspaceManager().setWorkspace(player, recipes.get(position - 1));
+                MerchantRecipe recipe = recipes.get(position - 1);
+
+                // Convert MerchantRecipe into a TradeDraft
+                TradeDraft draft = new TradeDraft(recipe.getMaxUses());
+                draft.setResult(recipe.getResult());
+                if (!recipe.getIngredients().isEmpty()) {
+                    draft.setBuyItems(
+                            recipe.getIngredients().get(0),
+                            recipe.getIngredients().size() > 1 ? recipe.getIngredients().get(1) : null
+                    );
+                }
+                draft.setGivesXp(recipe.hasExperienceReward());
+
+                // Save to workspace
+                plugin.getWorkspaceManager().setWorkspace(player, draft, villager);
+
                 player.sendMessage(ChatColor.DARK_AQUA + "Villager trade " + position + " copied to your workspace.");
                 return true;
             }
-        } catch (IllegalArgumentException ex) {
+        } catch (NumberFormatException ex) {
         }
         player.sendMessage(ChatColor.RED + "The position must be between 1 and the number of trades.");
         return false;
@@ -68,14 +87,15 @@ public class GetTradeCommand extends AbstractCommand implements TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 2 && sender instanceof Player) {
+        if (args.length == 1 && sender instanceof Player) {
             Player player = (Player) sender;
             AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
-            if (target != null) {
-                return IntStream.rangeClosed(1, target.getRecipeCount())
-                .mapToObj(i -> Integer.toString(i))
-                .filter(completion -> completion.startsWith(args[1]))
-                .collect(Collectors.toList());
+            if (target instanceof Villager) {
+                Villager villager = (Villager) target;
+                return IntStream.rangeClosed(1, villager.getRecipeCount())
+                        .mapToObj(Integer::toString)
+                        .filter(completion -> completion.startsWith(args[0]))
+                        .collect(Collectors.toList());
             }
         }
         return Collections.emptyList();

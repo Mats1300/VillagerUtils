@@ -1,9 +1,9 @@
 package io.github.redwallhp.villagerutils.commands.vtrade;
 
+import io.github.redwallhp.villagerutils.TradeDraft;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.MerchantRecipe;
 
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
@@ -38,13 +38,13 @@ public class InfoVtradeCommand extends AbstractCommand {
             return false;
         }
 
-        MerchantRecipe recipe = plugin.getWorkspaceManager().getWorkspace(player);
-        if (recipe == null) {
+        TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
+        if (draft == null) {
             player.sendMessage(ChatColor.RED + "Your workspace is empty.");
             return false;
         } else {
             player.sendMessage(ChatColor.DARK_AQUA + "---------- Workspace ----------");
-            TradeHelper.describeTrade(sender, recipe);
+            TradeHelper.describeTrade(sender, draft);
             return true;
         }
     }

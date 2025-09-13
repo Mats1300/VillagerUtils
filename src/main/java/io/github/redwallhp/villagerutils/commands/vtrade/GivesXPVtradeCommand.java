@@ -5,12 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.github.redwallhp.villagerutils.TradeDraft;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.MerchantRecipe;
 
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
@@ -60,8 +60,8 @@ public class GivesXPVtradeCommand extends AbstractCommand implements TabComplete
             return false;
         }
 
-        MerchantRecipe recipe = plugin.getWorkspaceManager().getWorkspace(player);
-        recipe.setExperienceReward(value);
+        TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
+        draft.setGivesXp(value);
         player.sendMessage(ChatColor.DARK_AQUA + "This trade will" + (value ? "" : " not") + " give experience.");
         return true;
     }

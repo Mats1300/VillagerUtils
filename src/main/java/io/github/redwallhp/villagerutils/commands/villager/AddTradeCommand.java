@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.github.redwallhp.villagerutils.TradeDraft;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -50,11 +51,12 @@ public class AddTradeCommand extends AbstractCommand implements TabCompleter {
             player.sendMessage(ChatColor.RED + "You do not have a trade loaded. Use '/vtrade'");
             return false;
         }
-        MerchantRecipe recipe = plugin.getWorkspaceManager().getWorkspace(player);
-        if (recipe.getIngredients().size() == 0) {
-            player.sendMessage(ChatColor.RED + "You haven't set the trade items yet! Use '/vtrade items'");
+        TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
+        if (draft == null || !draft.isComplete()) {
+            player.sendMessage(ChatColor.RED + "You haven't finished setting up this trade!");
             return false;
         }
+        MerchantRecipe recipe = draft.toRecipe();
 
         if (args.length > 1) {
             player.sendMessage(ChatColor.RED + "Invalid arguments. Usage: " + getUsage());

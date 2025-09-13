@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -13,8 +14,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.SpawnEggMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
 
 /**
  * Utility functions for ItemStacks.
@@ -22,11 +23,11 @@ import org.bukkit.potion.PotionEffect;
 public class ItemHelper {
     /**
      * Return a string describing a dropped item stack.
-     *
+     * <p>
      * The string contains the material type name, data value and amount, as
      * well as a list of enchantments. It is used in methods that log drops.
      *
-     * @param item the droppped item stack.
+     * @param item the dropped item stack.
      * @return a string describing a dropped item stack.
      */
     public static String getItemDescription(ItemStack item) {
@@ -51,9 +52,9 @@ public class ItemHelper {
                 if (skullMeta.getOwner() != null) {
                     description.append(" of \"").append(skullMeta.getOwner()).append("\"");
                 }
-            } else if (meta instanceof SpawnEggMeta) {
-                SpawnEggMeta eggMeta = (SpawnEggMeta) meta;
-                description.append(" of ").append(eggMeta.getSpawnedType());
+            } else if (meta instanceof SpawnEggMeta eggMeta) {
+                EntityType type = eggMeta.getCustomSpawnedType();
+                description.append(" of ").append(type);
             } else if (meta instanceof EnchantmentStorageMeta) {
                 EnchantmentStorageMeta bookEnchants = (EnchantmentStorageMeta) meta;
                 description.append(" with").append(enchantsToString(bookEnchants.getStoredEnchants()));
@@ -65,16 +66,22 @@ public class ItemHelper {
                 if (bookMeta.getAuthor() != null) {
                     description.append(" by ").append(bookMeta.getAuthor());
                 }
-            } else if (meta instanceof PotionMeta) {
-                PotionMeta potionMeta = (PotionMeta) meta;
+            } else if (meta instanceof PotionMeta potionMeta) {
+                PotionType type = potionMeta.getBasePotionType();
                 description.append(" of ");
-                PotionData data = potionMeta.getBasePotionData();
-                description.append(data.getType());
-                if (data.isExtended()) {
-                    description.append(" extended");
-                }
-                if (data.isUpgraded()) {
-                    description.append(" upgraded");
+
+                if (type != null) {
+                    String lower = type.name().toLowerCase();
+
+                    if (lower.startsWith("long_")) {
+                        description.append(lower.substring(5)).append(" (extended)");
+                    } else if (lower.startsWith("strong_")) {
+                        description.append(lower.substring(7)).append(" (upgraded)");
+                    } else {
+                        description.append(lower);
+                    }
+                } else {
+                    description.append("unknown");
                 }
 
                 List<PotionEffect> effects = potionMeta.getCustomEffects();

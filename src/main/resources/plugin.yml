@@ -1,10 +1,12 @@
 name: VillagerUtils
+version: ${project.version}
 main: io.github.redwallhp.villagerutils.VillagerUtils
 description: Tools for managing villagers
 author: redwall_hp
-version: ${project.version}
+contributors: [Mats1300]
+website: https://github.com/NerdNu/VillagerUtils
+api-version: 1.21.8
 softdepend: [WorldGuard]
-api-version: 1.14
 
 
 permissions:

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.github.redwallhp.villagerutils.TradeDraft;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -57,13 +58,22 @@ public class SetTradeCommand extends AbstractCommand implements TabCompleter {
         try {
             int position = Integer.parseInt(args[0]);
             if (position >= 1 && position <= recipes.size()) {
-                recipes.set(position - 1, plugin.getWorkspaceManager().getWorkspace(player));
+                TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
+                if (draft == null || !draft.isComplete()) {
+                    player.sendMessage(ChatColor.RED + "You haven't finished setting up this trade!");
+                    return false;
+                }
+                MerchantRecipe recipe = draft.toRecipe();
+
+                recipes.set(position - 1, recipe);
                 target.setRecipes(recipes);
                 player.sendMessage(ChatColor.DARK_AQUA + "Villager trade " + position + " set from your workspace.");
                 return true;
             }
-        } catch (IllegalArgumentException ex) {
+        } catch (NumberFormatException ex) {
+            // fall through to error message below
         }
+
         player.sendMessage(ChatColor.RED + "The position must be between 1 and the number of trades.");
         return false;
     }
@@ -75,9 +85,9 @@ public class SetTradeCommand extends AbstractCommand implements TabCompleter {
             AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
             if (target != null) {
                 return IntStream.rangeClosed(1, target.getRecipeCount())
-                .mapToObj(i -> Integer.toString(i))
-                .filter(completion -> completion.startsWith(args[1]))
-                .collect(Collectors.toList());
+                        .mapToObj(i -> Integer.toString(i))
+                        .filter(completion -> completion.startsWith(args[1]))
+                        .collect(Collectors.toList());
             }
         }
         return Collections.emptyList();

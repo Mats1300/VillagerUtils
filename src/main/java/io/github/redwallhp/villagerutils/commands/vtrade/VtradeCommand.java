@@ -14,6 +14,7 @@ public class VtradeCommand extends AbstractCommand {
         addSubCommand(new MaxUsesVtradeCommand(plugin));
         addSubCommand(new GivesXPVtradeCommand(plugin));
         addSubCommand(new InfoVtradeCommand(plugin));
+        addSubCommand(new CopyVtradeCommand(plugin));
     }
 
     @Override

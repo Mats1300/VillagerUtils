@@ -44,6 +44,17 @@ public class VillagerHelper {
         return null;
     }
 
+    /**
+     * Get the Villager (not Wandering Trader) that the player is looking at.
+     *
+     * @param player the player to check
+     * @return Villager entity or null
+     */
+    public static Villager getVillagerInLineOfSight(Player player) {
+        AbstractVillager av = getAbstractVillagerInLineOfSight(player);
+        return (av instanceof Villager) ? (Villager) av : null;
+    }
+
     public static Villager.Profession getProfessionFromString(String key) {
         try {
             return Villager.Profession.valueOf(key.toUpperCase());
