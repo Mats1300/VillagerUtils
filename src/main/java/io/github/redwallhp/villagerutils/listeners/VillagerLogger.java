@@ -1,5 +1,7 @@
 package io.github.redwallhp.villagerutils.listeners;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Villager;
@@ -10,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MerchantRecipe;
 
 import io.github.redwallhp.villagerutils.VillagerUtils;
+import io.github.redwallhp.villagerutils.helpers.ItemHelper;
 
 public class VillagerLogger implements Listener {
 
@@ -29,36 +32,35 @@ public class VillagerLogger implements Listener {
         }
     }
 
-    private void logDeath(AbstractVillager abstractVillager) {
+    private void logDeath(AbstractVillager villager) {
         StringBuilder sb = new StringBuilder("[VILLAGER DEATH] ");
 
-        Location l = abstractVillager.getLocation();
-        sb.append(String.format("Location: %s %d %d %d | ", l.getWorld().getName(), l.getBlockX(), l.getBlockY(), l.getBlockZ()));
+        Location l = villager.getLocation();
+        sb.append(String.format("Location: %s %d %d %d | ",
+                l.getWorld().getName(), l.getBlockX(), l.getBlockY(), l.getBlockZ()));
 
-        if (abstractVillager.getKiller() != null) {
-            sb.append(String.format("Killer: %s (%s) | ", abstractVillager.getKiller().getName(), abstractVillager.getKiller().getUniqueId()));
+        if (villager.getKiller() != null) {
+            sb.append(String.format("Killer: %s (%s) | ",
+                    villager.getKiller().getName(), villager.getKiller().getUniqueId()));
         }
 
-        String name = abstractVillager.getCustomName();
-        if (name != null && !name.equals("")) {
-            sb.append(String.format("Name: %s | ", name));
+        Component customName = villager.customName();
+        if (customName != null && !customName.equals(Component.empty())) {
+            String nameStr = PlainTextComponentSerializer.plainText().serialize(customName);
+            sb.append(String.format("Name: %s | ", nameStr));
         }
 
-        if (abstractVillager instanceof Villager) {
-            Villager villager = (Villager) abstractVillager;
-            sb.append(String.format("Profession: %s | ", villager.getProfession()));
-            sb.append(String.format("Biome: %s | ", villager.getVillagerType()));
-            sb.append(String.format("Level: %d | ", villager.getVillagerLevel()));
-            sb.append(String.format("Experience: %d | ", villager.getVillagerExperience()));
+        if (villager instanceof Villager v) {
+            sb.append(String.format("Profession: %s | ", v.getProfession()));
+            sb.append(String.format("Biome: %s | ", v.getVillagerType()));
+            sb.append(String.format("Level: %d | ", v.getVillagerLevel()));
+            sb.append(String.format("Experience: %d | ", v.getVillagerExperience()));
         }
 
         sb.append("Recipes: ");
-
-        for (MerchantRecipe recipe : abstractVillager.getRecipes()) {
-            sb.append("{");
-            sb.append(getRecipeString(recipe));
-            sb.append("}");
-            if (abstractVillager.getRecipes().indexOf(recipe) < abstractVillager.getRecipes().size() - 1) {
+        for (MerchantRecipe recipe : villager.getRecipes()) {
+            sb.append("{").append(getRecipeString(recipe)).append("}");
+            if (villager.getRecipes().indexOf(recipe) < villager.getRecipes().size() - 1) {
                 sb.append(", ");
             }
         }
@@ -66,9 +68,10 @@ public class VillagerLogger implements Listener {
         plugin.getLogger().info(sb.toString());
     }
 
+
     private String getRecipeString(MerchantRecipe recipe) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("[Result] %s ", recipe.getResult().toString()));
+        sb.append("[Result] ").append(ItemHelper.getItemDescription(recipe.getResult())).append(" ");
 
         sb.append("[Cost] ");
         for (ItemStack item : recipe.getIngredients()) {

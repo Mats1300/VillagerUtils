@@ -1,10 +1,9 @@
 package io.github.redwallhp.villagerutils.commands.villager;
 
 import java.io.File;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
 import io.github.redwallhp.villagerutils.helpers.FileHelper;
@@ -28,7 +27,7 @@ public class DeleteFileCommand extends AbstractCommand {
     @Override
     public boolean action(CommandSender sender, String[] args) {
         if (args.length != 1) {
-            sender.sendMessage(ChatColor.RED + "Invalid arguments. Usage: " + getUsage());
+            sender.sendMessage(Component.text("Invalid arguments. Usage: " + getUsage(), NamedTextColor.RED));
             return false;
         }
 
@@ -40,14 +39,14 @@ public class DeleteFileCommand extends AbstractCommand {
         File file = new File(plugin.getSavedVillagersDirectory(), fileName);
         if (file.exists()) {
             if (file.delete()) {
-                sender.sendMessage(ChatColor.DARK_AQUA + "The file \"" + fileName + "\" was deleted.");
+                sender.sendMessage(Component.text("The file \"" + fileName + "\" was deleted.", NamedTextColor.DARK_AQUA));
                 return true;
             } else {
-                sender.sendMessage(ChatColor.RED + "The file could not be deleted!");
+                sender.sendMessage(Component.text("The file could not be deleted!", NamedTextColor.RED));
                 return false;
             }
         } else {
-            sender.sendMessage(ChatColor.RED + "There is no file named \"" + fileName + "\".");
+            sender.sendMessage(Component.text("There is no file named \"" + fileName + "\".", NamedTextColor.RED));
             return false;
         }
     }

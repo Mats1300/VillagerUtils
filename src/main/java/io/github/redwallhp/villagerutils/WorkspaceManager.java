@@ -1,58 +1,58 @@
 package io.github.redwallhp.villagerutils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
-
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Villager;
-import org.bukkit.inventory.MerchantRecipe;
 
 /**
- * Manages the association between players and their trade drafts, and the villager being edited.
+ * Manages the association between players and their active TradeDrafts.
+ * <p>
+ * This class is used for keeping track of trades being edited via /vtrade commands.
+ * </p>
  */
 public class WorkspaceManager {
-    private final HashMap<UUID, TradeDraft> uuidToTrade = new HashMap<>();
-    private final HashMap<UUID, Villager> uuidToVillager = new HashMap<>();
 
-    /** Check if the player currently has a draft workspace */
+    /**
+     * Maps a player's UUID to their current TradeDraft.
+     */
+    private final HashMap<UUID, TradeDraft> uuidToTrade = new HashMap<>();
+
+    /**
+     * Checks if a player has a trade draft loaded in their workspace.
+     *
+     * @param player the player to check
+     * @return true if a draft is loaded, false otherwise
+     */
     public boolean hasWorkspace(Player player) {
         return uuidToTrade.containsKey(player.getUniqueId());
     }
 
-    /** Get the player's current TradeDraft, or null if none exists */
+    /**
+     * Gets the TradeDraft currently in the player's workspace.
+     *
+     * @param player the player whose draft to retrieve
+     * @return the TradeDraft, or null if none exists
+     */
     public TradeDraft getWorkspace(Player player) {
         return uuidToTrade.get(player.getUniqueId());
     }
 
-    /** Set or replace a player's current TradeDraft */
-    public void setWorkspace(Player player, TradeDraft draft, Villager villager) {
+    /**
+     * Sets or updates the TradeDraft for a player.
+     *
+     * @param player the player whose workspace to update
+     * @param draft  the TradeDraft to store
+     */
+    public void setWorkspace(Player player, TradeDraft draft) {
         uuidToTrade.put(player.getUniqueId(), draft);
-        uuidToVillager.put(player.getUniqueId(), villager);
     }
 
-    /** Remove a player's draft workspace */
+    /**
+     * Clears the TradeDraft from a player's workspace.
+     *
+     * @param player the player whose workspace to clear
+     */
     public void clearWorkspace(Player player) {
         uuidToTrade.remove(player.getUniqueId());
-    }
-    /** Finalize the draft into a MerchantRecipe and clear the workspace */
-    public MerchantRecipe finalizeDraft(Player player) {
-        TradeDraft draft = uuidToTrade.get(player.getUniqueId());
-        if (draft == null) return null;
-        if (!draft.isComplete()) {
-            throw new IllegalStateException("TradeDraft is incomplete.");
-        }
-
-        MerchantRecipe recipe = draft.toRecipe();
-        Villager villager = uuidToVillager.get(player.getUniqueId());
-        if (villager != null) {
-            List<MerchantRecipe> recipes = new ArrayList<>(villager.getRecipes());
-            recipes.add(recipe);
-            villager.setRecipes(recipes);
-        }
-
-        clearWorkspace(player);
-        return recipe;
     }
 }

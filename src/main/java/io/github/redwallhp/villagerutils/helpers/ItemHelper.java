@@ -3,8 +3,7 @@ package io.github.redwallhp.villagerutils.helpers;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
@@ -13,7 +12,6 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
 
@@ -31,82 +29,92 @@ public class ItemHelper {
      * @return a string describing a dropped item stack.
      */
     public static String getItemDescription(ItemStack item) {
-        if (item == null) {
-            return "null";
-        }
+        if (item == null) return "null";
 
         StringBuilder description = new StringBuilder();
-        if (item.getAmount() != 1) {
-            description.append(item.getAmount()).append('x');
-        }
-
+        if (item.getAmount() != 1) description.append(item.getAmount()).append('x');
         description.append(item.getType().name());
-        if (item.getDurability() != 0) {
-            description.append(':').append(item.getDurability());
-        }
 
         ItemMeta meta = item.getItemMeta();
+
+        // Damageable items
+        if (meta instanceof org.bukkit.inventory.meta.Damageable damageable) {
+            int damage = damageable.getDamage();
+            if (damage != 0) description.append(":").append(damage);
+        }
+
         if (meta != null) {
-            if (meta instanceof SkullMeta) {
-                SkullMeta skullMeta = (SkullMeta) meta;
-                if (skullMeta.getOwner() != null) {
-                    description.append(" of \"").append(skullMeta.getOwner()).append("\"");
-                }
-            } else if (meta instanceof SpawnEggMeta eggMeta) {
-                EntityType type = eggMeta.getCustomSpawnedType();
-                description.append(" of ").append(type);
-            } else if (meta instanceof EnchantmentStorageMeta) {
-                EnchantmentStorageMeta bookEnchants = (EnchantmentStorageMeta) meta;
-                description.append(" with").append(enchantsToString(bookEnchants.getStoredEnchants()));
-            } else if (meta instanceof BookMeta) {
-                BookMeta bookMeta = (BookMeta) meta;
-                if (bookMeta.getTitle() != null) {
-                    description.append(" titled \"").append(bookMeta.getTitle()).append("\"");
-                }
-                if (bookMeta.getAuthor() != null) {
-                    description.append(" by ").append(bookMeta.getAuthor());
-                }
-            } else if (meta instanceof PotionMeta potionMeta) {
-                PotionType type = potionMeta.getBasePotionType();
-                description.append(" of ");
-
-                if (type != null) {
-                    String lower = type.name().toLowerCase();
-
-                    if (lower.startsWith("long_")) {
-                        description.append(lower.substring(5)).append(" (extended)");
-                    } else if (lower.startsWith("strong_")) {
-                        description.append(lower.substring(7)).append(" (upgraded)");
-                    } else {
-                        description.append(lower);
+            switch (meta.getClass().getSimpleName()) {
+                case "SkullMeta" -> {
+                    SkullMeta skullMeta = (SkullMeta) meta;
+                    if (skullMeta.getOwningPlayer() != null) {
+                        description.append(" of \"")
+                                .append(skullMeta.getOwningPlayer().getName())
+                                .append("\"");
                     }
-                } else {
-                    description.append("unknown");
                 }
+                case "SpawnEggMeta" -> {
+                    String materialName = item.getType().name();
+                    if (materialName.endsWith("_SPAWN_EGG")) {
+                        String entityName = materialName.substring(0, materialName.length() - 10);
+                        try {
+                            EntityType type = EntityType.valueOf(entityName);
+                            description.append(" of ").append(type.name());
+                        } catch (IllegalArgumentException ignored) {
+                            // Unknown entity type
+                        }
+                    }
+                }
+                case "EnchantmentStorageMeta" -> {
+                    EnchantmentStorageMeta esm = (EnchantmentStorageMeta) meta;
+                    description.append(" with").append(enchantsToString(esm.getStoredEnchants()));
+                }
+                case "BookMeta" -> {
+                    BookMeta bm = (BookMeta) meta;
+                    if (bm.hasTitle()) description.append(" titled \"").append(bm.getTitle()).append("\"");
+                    if (bm.hasAuthor()) description.append(" by ").append(bm.getAuthor());
+                }
+                case "PotionMeta" -> {
+                    PotionMeta pm = (PotionMeta) meta;
+                    PotionType type = pm.getBasePotionType();
+                    description.append(" of ").append(type != null ? formatPotionType(type) : "unknown");
 
-                List<PotionEffect> effects = potionMeta.getCustomEffects();
-                if (effects != null && !effects.isEmpty()) {
-                    description.append(" with ");
-                    String sep = "";
-                    for (PotionEffect effect : potionMeta.getCustomEffects()) {
-                        description.append(sep).append(potionToString(effect));
-                        sep = "+";
+                    List<PotionEffect> effects = pm.getCustomEffects();
+                    if (!effects.isEmpty()) {
+                        description.append(" with ");
+                        for (int i = 0; i < effects.size(); i++) {
+                            if (i != 0) description.append("+");
+                            description.append(potionToString(effects.get(i)));
+                        }
                     }
                 }
             }
 
-            if (meta.getDisplayName() != null && !meta.getDisplayName().isEmpty()) {
-                description.append(" named \"").append(meta.getDisplayName()).append(ChatColor.WHITE).append("\"");
-            }
+            // Display name
+            if (meta.hasDisplayName()) description.append(" named \"").append(meta.displayName()).append("\"");
 
-            List<String> lore = meta.getLore();
+            // Lore
+            List<Component> lore = meta.lore();
             if (lore != null && !lore.isEmpty()) {
-                description.append(" lore \"").append(String.join("|", lore)).append(ChatColor.WHITE).append("\"");
+                description.append(" lore \"");
+                for (int i = 0; i < lore.size(); i++) {
+                    description.append(lore.get(i));
+                    if (i != lore.size() - 1) description.append("|");
+                }
+                description.append("\"");
             }
         }
 
         description.append(enchantsToString(item.getEnchantments()));
         return description.toString();
+    }
+
+    // Helper to format base potion types
+    private static String formatPotionType(PotionType type) {
+        String lower = type.name().toLowerCase();
+        if (lower.startsWith("long_")) return lower.substring(5) + " (extended)";
+        if (lower.startsWith("strong_")) return lower.substring(7) + " (upgraded)";
+        return lower;
     }
 
     /**
@@ -115,12 +123,13 @@ public class ItemHelper {
      * @param effect the effect.
      * @return the description.
      */
+
     public static String potionToString(PotionEffect effect) {
-        StringBuilder description = new StringBuilder();
-        description.append(effect.getType().getName()).append("/");
-        description.append(effect.getAmplifier() + 1).append("/");
-        description.append(effect.getDuration() / 20.0).append('s');
-        return description.toString();
+        // Using String.format for clarity
+        return String.format("%s/%d/%.1fs",
+                effect.getType().getKey().getKey(), // effect type
+                effect.getAmplifier() + 1,          // level
+                effect.getDuration() / 20.0);       // duration in seconds
     }
 
     /**
@@ -130,17 +139,14 @@ public class ItemHelper {
      * @return the description.
      */
     public static String enchantsToString(Map<Enchantment, Integer> enchants) {
-        StringBuilder description = new StringBuilder();
-        if (enchants.size() > 0) {
-            description.append(" (");
-            String sep = "";
-            for (Entry<Enchantment, Integer> entry : enchants.entrySet()) {
-                description.append(sep).append(entry.getKey().getName()).append(':').append(entry.getValue());
-                sep = ",";
-            }
-            description.append(')');
+        if (enchants.isEmpty()) return "";
+        StringBuilder description = new StringBuilder(" (");
+        String sep = "";
+        for (Entry<Enchantment, Integer> entry : enchants.entrySet()) {
+            description.append(sep).append(entry.getKey().getKey().getKey()).append(':').append(entry.getValue());
+            sep = ",";
         }
+        description.append(')');
         return description.toString();
     }
-
 }

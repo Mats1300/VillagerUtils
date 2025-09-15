@@ -5,10 +5,9 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 
 public abstract class AbstractCommand {
@@ -20,35 +19,30 @@ public abstract class AbstractCommand {
     public AbstractCommand(VillagerUtils plugin, String permission) {
         this.plugin = plugin;
         this.permission = permission;
-        this.subCommands = new LinkedHashMap<String, AbstractCommand>();
+        this.subCommands = new LinkedHashMap<>();
     }
 
     public boolean execute(CommandSender sender, String[] args) {
-        if (!checkPermission(sender)) {
-            return false;
-        }
+        if (!checkPermission(sender)) return false;
 
-        if (subCommands.size() > 0) {
-            if (args.length == 0) {
-                sender.sendMessage(ChatColor.RED + "Usage: " + getUsage());
-                sender.sendMessage(getSubcommandsHelp());
-                return false;
-            } else if (args.length > 0 && !subCommands.containsKey(args[0].toLowerCase())) {
-                sender.sendMessage(ChatColor.RED + "Usage: " + getUsage());
-                sender.sendMessage(getSubcommandsHelp());
-                return false;
+        if (!subCommands.isEmpty() && args.length > 0) {
+            AbstractCommand subcmd = subCommands.get(args[0].toLowerCase());
+            if (subcmd != null) {
+                String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
+                return subcmd.execute(sender, subArgs);
             } else {
-                AbstractCommand subcmd = subCommands.get(args[0].toLowerCase());
-                args = Arrays.copyOfRange(args, 1, args.length);
-                subcmd.execute(sender, args);
+                sender.sendMessage(Component.text("Usage: " + getUsage(), NamedTextColor.RED));
+                sender.sendMessage(getSubcommandsHelp());
+                return false;
             }
         }
+
         return action(sender, args);
     }
 
     public boolean checkPermission(CommandSender sender) {
         if (!sender.hasPermission(permission)) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission to do that.");
+            sender.sendMessage(Component.text("You don't have permission to do that.", NamedTextColor.RED));
             return false;
         }
         return true;
@@ -66,9 +60,13 @@ public abstract class AbstractCommand {
         return subCommands.keySet();
     }
 
-    private String getSubcommandsHelp() {
-        return ChatColor.DARK_AQUA + "Subcommands: " +
-               ChatColor.GRAY + subCommands.keySet().stream().collect(Collectors.joining(", "));
+    private Component getSubcommandsHelp() {
+        String joined = subCommands.keySet().stream()
+                .sorted()
+                .collect(Collectors.joining(", "));
+
+        return Component.text("Subcommands: ", NamedTextColor.DARK_AQUA)
+                .append(Component.text(joined, NamedTextColor.GRAY));
     }
 
     /**

@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.inventory.MerchantRecipe;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.VillagerSpecificAbstractCommand;
 import io.github.redwallhp.villagerutils.helpers.FileHelper;
@@ -36,11 +36,10 @@ public class SaveFileCommand extends VillagerSpecificAbstractCommand {
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
-        Player player = (Player) sender;
 
         Villager villager = getVillagerInLineOfSight(player, "This command doesn't work with wandering traders.");
         if (villager == null) {
@@ -48,7 +47,7 @@ public class SaveFileCommand extends VillagerSpecificAbstractCommand {
         }
 
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "You must specify a file name.");
+            sender.sendMessage(Component.text("You must specify a file name.", NamedTextColor.RED));
             return false;
         }
 
@@ -58,7 +57,11 @@ public class SaveFileCommand extends VillagerSpecificAbstractCommand {
         }
 
         YamlConfiguration config = new YamlConfiguration();
-        config.set("name", villager.getCustomName());
+
+        Component customName = villager.customName();
+        String name = customName != null ? PlainTextComponentSerializer.plainText().serialize(customName) : null;
+
+        config.set("name", name);
         config.set("biome", villager.getVillagerType().toString());
         config.set("profession", villager.getProfession().toString());
         config.set("level", villager.getVillagerLevel());
@@ -81,9 +84,9 @@ public class SaveFileCommand extends VillagerSpecificAbstractCommand {
         File file = new File(plugin.getSavedVillagersDirectory(), fileName);
         try {
             config.save(file);
-            player.sendMessage(ChatColor.DARK_AQUA + "Villager trades saved to \"" + fileName + "\".");
+            player.sendMessage(Component.text("Villager trades saved to \"" + fileName + "\".", NamedTextColor.DARK_AQUA));
         } catch (IOException ex) {
-            player.sendMessage(ChatColor.RED + "Error saving file: " + ex.getMessage());
+            player.sendMessage(Component.text("Error saving file: " + ex.getMessage(), NamedTextColor.RED));
         }
         return true;
     }

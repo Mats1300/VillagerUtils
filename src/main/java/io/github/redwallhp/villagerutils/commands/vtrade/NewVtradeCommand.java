@@ -1,7 +1,9 @@
 package io.github.redwallhp.villagerutils.commands.vtrade;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import java.util.Random;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import io.github.redwallhp.villagerutils.TradeDraft;
@@ -69,12 +71,10 @@ public class NewVtradeCommand extends AbstractCommand {
      */
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
-        Player player = (Player) sender;
-
         int limit;
         if (args.length == 0) {
             limit = new Random().nextInt(11) + 2; // vanilla range
@@ -82,16 +82,17 @@ public class NewVtradeCommand extends AbstractCommand {
             try {
                 limit = args[0].equalsIgnoreCase("max") ? Integer.MAX_VALUE : Integer.parseInt(args[0]);
             } catch (NumberFormatException ex) {
-                player.sendMessage(ChatColor.RED + "Number of uses must be an integer or 'max'.");
+                player.sendMessage(Component.text("Number of uses must be an integer or 'max'.", NamedTextColor.RED));
                 return false;
             }
         }
 
         TradeDraft draft = new TradeDraft(limit);
-        plugin.getWorkspaceManager().setWorkspace(player, draft, null); // no villager yet
+        plugin.getWorkspaceManager().setWorkspace(player, draft);
 
-        player.sendMessage(ChatColor.DARK_AQUA + "New villager trade created with max " + limit + " uses.");
-        player.sendMessage(ChatColor.ITALIC + "Next: /vtrade items to edit the trade items.");
+        player.sendMessage(Component.text("New villager trade created with max " + limit + " uses.", NamedTextColor.DARK_AQUA));
+        player.sendMessage(Component.text("Next: /vtrade items to edit the trade items.", NamedTextColor.GRAY)
+                .decoration(TextDecoration.ITALIC, true));
         return true;
     }
 }

@@ -1,11 +1,11 @@
 package io.github.redwallhp.villagerutils.commands;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.entity.WanderingTrader;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.helpers.VillagerHelper;
 
@@ -43,17 +43,17 @@ public abstract class VillagerSpecificAbstractCommand extends AbstractCommand {
     public Villager getVillagerInLineOfSight(Player player, String wanderingTraderMessage) {
         AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "You're not looking at a villager.");
+            player.sendMessage(Component.text("You're not looking at a villager.", NamedTextColor.RED));
             return null;
         }
 
         if (target instanceof WanderingTrader) {
-            player.sendMessage(ChatColor.RED + wanderingTraderMessage);
+            player.sendMessage(Component.text(wanderingTraderMessage, NamedTextColor.RED));
             return null;
         }
 
         if (!(target instanceof Villager)) {
-            player.sendMessage(ChatColor.RED + "The game added a new villager type. Remind a tech!");
+            player.sendMessage(Component.text("The game added a new villager type. Remind a tech!", NamedTextColor.RED));
             return null;
         }
 

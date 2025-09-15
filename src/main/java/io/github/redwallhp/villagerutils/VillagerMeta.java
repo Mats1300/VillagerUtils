@@ -11,8 +11,8 @@ import java.util.List;
 public class VillagerMeta {
 
 
-    private VillagerUtils plugin;
-    private File file;
+    private final VillagerUtils plugin;
+    private final File file;
     private FileConfiguration yaml;
 
 

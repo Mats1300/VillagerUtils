@@ -2,13 +2,13 @@ package io.github.redwallhp.villagerutils.commands.vtrade;
 
 import java.util.Objects;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import io.github.redwallhp.villagerutils.TradeDraft;
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
@@ -72,15 +72,14 @@ public class ItemsVtradeCommand extends AbstractCommand {
      */
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
 
-        Player player = (Player) sender;
         TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
         if (draft == null) {
-            player.sendMessage(ChatColor.RED + "No trade loaded. Use '/vtrade new' first.");
+            player.sendMessage(Component.text("No trade loaded. Use '/vtrade new' first.", NamedTextColor.RED));
             return false;
         }
 
@@ -104,7 +103,11 @@ public class ItemsVtradeCommand extends AbstractCommand {
      * @return a {@link Inventory} representing the trade editor GUI
      */
     private Inventory getTradeInventory(TradeDraft draft) {
-        Inventory inventory = Bukkit.createInventory(null, 9, "Edit Villager Trade");
+        Inventory inventory = Bukkit.createInventory(
+                null,
+                9,
+                Component.text("Edit Villager Trade")
+        );
 
         // Fill decorative slots
         for (int i = 2; i <= 7; i++) {

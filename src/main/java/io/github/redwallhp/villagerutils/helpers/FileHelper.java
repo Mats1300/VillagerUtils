@@ -1,8 +1,8 @@
 package io.github.redwallhp.villagerutils.helpers;
 
 import java.util.regex.Pattern;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 
 public class FileHelper {
@@ -21,7 +21,10 @@ public class FileHelper {
         if (Pattern.matches("(\\w|-)+", fileName)) {
             return true;
         } else {
-            sender.sendMessage(ChatColor.RED + "The file name can only contain letters, digits, underscores and hyphens.");
+            sender.sendMessage(Component.text(
+                    "The file name can only contain letters, digits, underscores and hyphens.",
+                    NamedTextColor.RED
+            ));
             return false;
         }
     }

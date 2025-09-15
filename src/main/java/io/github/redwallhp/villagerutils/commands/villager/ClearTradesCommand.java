@@ -3,7 +3,8 @@ package io.github.redwallhp.villagerutils.commands.villager;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Player;
@@ -31,19 +32,19 @@ public class ClearTradesCommand extends AbstractCommand {
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
-        Player player = (Player) sender;
+
         AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "You're not looking at a villager.");
+            player.sendMessage(Component.text("You're not looking at a villager.", NamedTextColor.RED));
             return false;
         }
-        List<MerchantRecipe> recipes = new ArrayList<MerchantRecipe>();
+        List<MerchantRecipe> recipes = new ArrayList<>();
         target.setRecipes(recipes);
-        player.sendMessage(ChatColor.DARK_AQUA + "Villager trades cleared.");
+        player.sendMessage(Component.text("Villager trades cleared.", NamedTextColor.DARK_AQUA));
         return true;
     }
 

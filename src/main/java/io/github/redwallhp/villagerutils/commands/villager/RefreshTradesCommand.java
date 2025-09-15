@@ -1,15 +1,14 @@
 package io.github.redwallhp.villagerutils.commands.villager;
 
 import java.util.List;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.MerchantRecipe;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
 import io.github.redwallhp.villagerutils.helpers.VillagerHelper;
@@ -32,15 +31,14 @@ public class RefreshTradesCommand extends AbstractCommand {
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
 
-        Player player = (Player) sender;
         AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "You're not looking at a villager.");
+            player.sendMessage(Component.text("You're not looking at a villager.", NamedTextColor.RED));
             return false;
         }
 
@@ -52,7 +50,7 @@ public class RefreshTradesCommand extends AbstractCommand {
 
         Location particleLoc = target.getLocation().add(0, 1.5, 0);
         particleLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, particleLoc, 10, 0.5, 0.5, 0.5);
-        player.sendMessage(ChatColor.DARK_AQUA + "Villager trades refreshed.");
+        player.sendMessage(Component.text("Villager trades refreshed.", NamedTextColor.DARK_AQUA));
         return true;
     }
 

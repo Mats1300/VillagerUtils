@@ -1,7 +1,8 @@
 package io.github.redwallhp.villagerutils.listeners;
 
 import io.github.redwallhp.villagerutils.TradeDraft;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Player;
@@ -12,8 +13,6 @@ import org.bukkit.event.entity.VillagerAcquireTradeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 
 public class TradeListener implements Listener {
@@ -21,7 +20,9 @@ public class TradeListener implements Listener {
     private final VillagerUtils plugin;
 
     protected boolean isTradeEditingView(InventoryView view) {
-        return view != null && "Edit Villager Trade".equals(view.getTitle());
+        if (view == null) return false;
+        String plainTitle = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(view.title());
+        return "Edit Villager Trade".equals(plainTitle);
     }
 
     public TradeListener() {
@@ -36,24 +37,21 @@ public class TradeListener implements Listener {
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
-        if (!isTradeEditingView(event.getView()) ||
-                !plugin.getWorkspaceManager().hasWorkspace(player)) {
+
+        // Check if this inventory is a trade editing GUI and if the player has a draft
+        if (!isTradeEditingView(event.getView()) || !plugin.getWorkspaceManager().hasWorkspace(player)) {
             return;
         }
 
         TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
         if (draft == null) return;
 
-        ItemStack result = event.getInventory().getItem(8);
-        ItemStack buyOne = event.getInventory().getItem(0);
-        ItemStack buyTwo = event.getInventory().getItem(1);
+        // Update the draft with the current inventory items
+        draft.setResult(event.getInventory().getItem(8));
+        draft.setBuyItems(event.getInventory().getItem(0), event.getInventory().getItem(1));
 
-        draft.setResult(result);
-        draft.setBuyItems(buyOne, buyTwo);
-
-        plugin.getWorkspaceManager().setWorkspace(player, draft, null);
-
-        player.sendMessage(ChatColor.DARK_AQUA + "Trade items updated.");
+        // Notify the player that changes are saved in the draft
+        player.sendMessage(Component.text("Trade draft updated. Use /vtrade givesxp or /villager addtrade to finalize.", NamedTextColor.DARK_AQUA));
     }
 
     /**

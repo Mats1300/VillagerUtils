@@ -1,10 +1,11 @@
 package io.github.redwallhp.villagerutils.commands.villager;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Player;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
 import io.github.redwallhp.villagerutils.helpers.VillagerHelper;
@@ -14,6 +15,8 @@ public class SetNameCommand extends AbstractCommand {
     public SetNameCommand(VillagerUtils plugin) {
         super(plugin, "villagerutils.editvillager");
     }
+
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     @Override
     public String getName() {
@@ -27,24 +30,26 @@ public class SetNameCommand extends AbstractCommand {
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
-        Player player = (Player) sender;
         AbstractVillager target = VillagerHelper.getAbstractVillagerInLineOfSight(player);
         if (target == null) {
-            player.sendMessage(ChatColor.RED + "You're not looking at a villager.");
+            player.sendMessage(Component.text("You're not looking at a villager.", NamedTextColor.RED));
             return false;
         }
         if (args.length == 0) {
-            player.sendMessage(ChatColor.RED + "You must enter a name.");
+            player.sendMessage(Component.text("You must enter a name.", NamedTextColor.RED));
             return false;
         }
-        String name = ChatColor.translateAlternateColorCodes('&', String.join(" ", args));
-        target.setCustomName(name);
-        player.sendMessage(ChatColor.DARK_AQUA + "Villager name updated.");
+
+        // Parse player input as MiniMessage
+        String input = String.join(" ", args);
+        Component nameComponent = miniMessage.deserialize(input);
+
+        target.customName(nameComponent);
+        player.sendMessage(Component.text("Villager name updated.", NamedTextColor.DARK_AQUA));
         return true;
     }
-
 }

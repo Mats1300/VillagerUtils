@@ -9,7 +9,7 @@ import java.util.List;
 public class Configuration {
 
 
-    private VillagerUtils plugin;
+    private final VillagerUtils plugin;
 
 
     public boolean LOGGING;
@@ -33,7 +33,7 @@ public class Configuration {
 
 
     private void loadMobProtections() {
-        PROTECT_FROM_MOBS = new ArrayList<EntityType>();
+        PROTECT_FROM_MOBS = new ArrayList<>();
         for (String mob : plugin.getConfig().getStringList("protect_from_mobs")) {
             try {
                 EntityType type = EntityType.valueOf(mob.toUpperCase());
@@ -43,6 +43,4 @@ public class Configuration {
             }
         }
     }
-
-
 }

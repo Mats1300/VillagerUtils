@@ -4,16 +4,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.VillagerSpecificAbstractCommand;
+import org.jetbrains.annotations.NotNull;
 
 public class SetLevelCommand extends VillagerSpecificAbstractCommand implements TabCompleter {
 
@@ -33,45 +33,50 @@ public class SetLevelCommand extends VillagerSpecificAbstractCommand implements 
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
-        Player player = (Player) sender;
 
         Villager villager = getVillagerInLineOfSight(player, "Wandering traders can't change their level.");
-        if (villager == null) {
+        if (villager == null) return false;
+
+        if (args.length == 0) {
+            player.sendMessage(Component.text("Silly, you need a number 1-5 here!", NamedTextColor.RED));
             return false;
         }
 
         if (args.length > 1) {
-            sender.sendMessage(ChatColor.RED + "Invalid arguments. Usage: " + getUsage());
+            player.sendMessage(Component.text("Invalid arguments. Usage: " + getUsage(), NamedTextColor.RED));
             return false;
         }
 
-        Integer level = null;
+        int level;
         try {
             level = Integer.parseInt(args[0]);
-        } catch (IllegalArgumentException ex) {
+        } catch (NumberFormatException ex) {
+            player.sendMessage(Component.text("The level must be a valid number.", NamedTextColor.RED));
+            return false;
         }
-        if (level == null || level < 1 || level > 5) {
-            sender.sendMessage(ChatColor.RED + "The level must be between 1 and 5, inclusive.");
+
+        if (level < 1 || level > 5) {
+            player.sendMessage(Component.text("The level must be between 1 and 5.", NamedTextColor.RED));
             return false;
         }
 
         villager.setVillagerLevel(level);
-        player.sendMessage(ChatColor.DARK_AQUA + "Villager level set to " + level + ".");
+        player.sendMessage(Component.text("Villager level set to " + level + ".", NamedTextColor.DARK_AQUA));
         return true;
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         if (args.length == 2) {
-            return IntStream.rangeClosed(1, 5).mapToObj(Integer::toString)
-            .filter(completion -> completion.startsWith(args[1]))
-            .collect(Collectors.toList());
-        } else {
+            return IntStream.rangeClosed(1, 5)
+                    .mapToObj(Integer::toString)
+                    .filter(s -> s.startsWith(args[1]))
+                    .collect(Collectors.toList());
+        }
             return Collections.emptyList();
         }
     }
-}

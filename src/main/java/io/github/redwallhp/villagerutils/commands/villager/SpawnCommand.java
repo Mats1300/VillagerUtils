@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -13,10 +13,10 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
 import io.github.redwallhp.villagerutils.helpers.VillagerHelper;
+import org.jetbrains.annotations.NotNull;
 
 public class SpawnCommand extends AbstractCommand implements TabCompleter {
 
@@ -36,13 +36,13 @@ public class SpawnCommand extends AbstractCommand implements TabCompleter {
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot spawn villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot spawn villagers.", NamedTextColor.RED));
             return false;
         }
 
         if (args.length > 3) {
-            sender.sendMessage(ChatColor.RED + "Invalid arguments. Usage: " + getUsage());
+            sender.sendMessage(Component.text("Invalid arguments. Usage: " + getUsage(), NamedTextColor.RED));
             return false;
         }
 
@@ -50,7 +50,7 @@ public class SpawnCommand extends AbstractCommand implements TabCompleter {
         if (args.length >= 1) {
             biome = VillagerHelper.getVillagerTypeFromString(args[0]);
             if (biome == null) {
-                sender.sendMessage(ChatColor.RED + "That's not a valid villager biome.");
+                sender.sendMessage(Component.text("That's not a valid villager biome.", NamedTextColor.RED));
                 return false;
             }
         }
@@ -59,24 +59,25 @@ public class SpawnCommand extends AbstractCommand implements TabCompleter {
         if (args.length >= 2) {
             profession = VillagerHelper.getProfessionFromString(args[1]);
             if (profession == null) {
-                sender.sendMessage(ChatColor.RED + "That's not a valid profession.");
+                sender.sendMessage(Component.text("That's not a valid profession.", NamedTextColor.RED));
                 return false;
             }
         }
 
         Integer level = null;
-        if (args.length >= 3) {
+        if (args.length == 3) {
             try {
                 level = Integer.parseInt(args[2]);
-            } catch (IllegalArgumentException ex) {
+            } catch (NumberFormatException ex) {
+                player.sendMessage(Component.text("The level must be a number.", NamedTextColor.RED));
+                return false;
             }
-            if (level == null || level < 1 || level > 5) {
-                sender.sendMessage(ChatColor.RED + "The level must be between 1 and 5, inclusive.");
+            if (level < 1 || level > 5) {
+                player.sendMessage(Component.text("The level must be between 1 and 5, inclusive.", NamedTextColor.RED));
                 return false;
             }
         }
 
-        Player player = (Player) sender;
         Location loc = player.getLocation();
         Villager villager = (Villager) loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
         if (biome != null) {
@@ -89,16 +90,18 @@ public class SpawnCommand extends AbstractCommand implements TabCompleter {
             villager.setVillagerLevel(level);
         }
 
-        String description = villager.getVillagerType().name().toLowerCase() + " villager, profession " +
-                             villager.getProfession().name().toLowerCase() + ", level " + villager.getVillagerLevel();
-        plugin.getLogger().info(String.format("%s spawned %s at %d, %d, %d", player.getName(), description,
-                                              loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-        player.sendMessage(ChatColor.DARK_AQUA + "Spawned " + description + ".");
+        String description = villager.getVillagerType().toString().toLowerCase() +
+                " villager, profession " + villager.getProfession().toString().toLowerCase() +
+                ", level " + villager.getVillagerLevel();
+
+        plugin.getLogger().info(player.getName() + " spawned " + description +
+                " at " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
+        player.sendMessage(Component.text("Spawned " + description + ".", NamedTextColor.DARK_AQUA));
         return true;
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         if (args.length == 2) {
             return VillagerHelper.getVillagerTypeNames().stream()
             .filter(completion -> completion.startsWith(args[1].toLowerCase()))

@@ -1,9 +1,9 @@
 package io.github.redwallhp.villagerutils.commands.vtrade;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 import io.github.redwallhp.villagerutils.TradeDraft;
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.commands.AbstractCommand;
@@ -26,26 +26,24 @@ public class MaxUsesVtradeCommand extends AbstractCommand {
 
     @Override
     public boolean action(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Console cannot edit villagers.");
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Console cannot edit villagers.", NamedTextColor.RED));
             return false;
         }
 
-        Player player = (Player) sender;
-
         if (!plugin.getWorkspaceManager().hasWorkspace(player)) {
-            player.sendMessage(ChatColor.RED + "You do not have a villager trade loaded. Use '/vtrade new' to start one.");
+            player.sendMessage(Component.text("You do not have a villager trade loaded. Use '/vtrade new' to start one.", NamedTextColor.RED));
             return false;
         }
 
         if (args.length != 1) {
-            player.sendMessage(ChatColor.RED + "Invalid arguments. Usage: " + getUsage());
+            player.sendMessage(Component.text("Invalid arguments. Usage: " + getUsage(), NamedTextColor.RED));
             return false;
         }
 
         TradeDraft draft = plugin.getWorkspaceManager().getWorkspace(player);
         if (draft == null) {
-            sender.sendMessage(ChatColor.RED + "Your workspace is empty.");
+            sender.sendMessage(Component.text("Your workspace is empty.", NamedTextColor.RED));
             return false;
         }
 
@@ -56,19 +54,19 @@ public class MaxUsesVtradeCommand extends AbstractCommand {
             } else {
                 value = Integer.parseInt(args[0]);
                 if (value <= 0) {
-                    sender.sendMessage(ChatColor.RED + "The maximum number of uses must be at least 1.");
+                    sender.sendMessage(Component.text("The maximum number of uses must be at least 1.", NamedTextColor.RED));
                     return false;
                 }
             }
         } catch (NumberFormatException ex) {
-            sender.sendMessage(ChatColor.RED + "The number of uses must be an integer or the word 'max'.");
+            sender.sendMessage(Component.text("The number of uses must be an integer or the word 'max'.", NamedTextColor.RED));
             return false;
         }
 
         // Set the max uses in TradeDraft
         draft.setMaxUses(value);
 
-        sender.sendMessage(ChatColor.DARK_AQUA + "Max uses for trade set to " + value + ".");
+        sender.sendMessage(Component.text("Max uses for trade set to " + value + ".", NamedTextColor.DARK_AQUA));
         return true;
     }
 }

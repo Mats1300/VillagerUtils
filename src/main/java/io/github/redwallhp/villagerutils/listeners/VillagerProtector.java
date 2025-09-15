@@ -3,8 +3,8 @@ package io.github.redwallhp.villagerutils.listeners;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractVillager;
 import org.bukkit.entity.Entity;
@@ -18,7 +18,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionType;
-
 import io.github.redwallhp.villagerutils.VillagerUtils;
 import io.github.redwallhp.villagerutils.helpers.WorldGuardHelper;
 
@@ -36,7 +35,7 @@ public class VillagerProtector implements Listener {
      */
     @EventHandler
     public void onEntityDamageByPlayer(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof AbstractVillager)) {
+        if (!(event.getEntity() instanceof AbstractVillager villager)) {
             return;
         }
         if (!plugin.getConfiguration().WORLDGUARD_PROTECT) {
@@ -49,8 +48,7 @@ public class VillagerProtector implements Listener {
         Player player;
         if (event.getDamager() instanceof Player) {
             player = (Player) event.getDamager();
-        } else if (event.getDamager() instanceof Projectile) {
-            Projectile projectile = (Projectile) event.getDamager();
+        } else if (event.getDamager() instanceof Projectile projectile) {
             if (projectile.getShooter() instanceof Player) {
                 player = (Player) projectile.getShooter();
             } else {
@@ -60,11 +58,10 @@ public class VillagerProtector implements Listener {
             return;
         }
 
-        AbstractVillager villager = (AbstractVillager) event.getEntity();
         boolean isProhibited = WorldGuardHelper.isVillagerViolenceProhibited(player, villager);
         if (isProhibited) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You don't have permission to harm villagers in this region.");
+            player.sendMessage(Component.text("You don't have permission to harm villagers in this region.", NamedTextColor.RED));
         }
     }
 
@@ -78,17 +75,17 @@ public class VillagerProtector implements Listener {
 
         // There's no trivial way to map EquipmentSlot enum to Inventory index.
         if (event.getHand() == EquipmentSlot.HAND &&
-            player.getEquipment().getItemInMainHand().getType() != Material.NAME_TAG) {
+                player.getEquipment().getItemInMainHand().getType() != Material.NAME_TAG) {
             return;
         }
         if (event.getHand() == EquipmentSlot.OFF_HAND &&
-            player.getEquipment().getItemInOffHand().getType() != Material.NAME_TAG) {
+                player.getEquipment().getItemInOffHand().getType() != Material.NAME_TAG) {
             return;
         }
 
         if (!WorldGuardHelper.canBuild(player, event.getRightClicked().getLocation())) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You can't rename that villager in this region.");
+            player.sendMessage(Component.text("You can't rename that villager in this region.", NamedTextColor.RED));
         }
     }
 
@@ -100,7 +97,7 @@ public class VillagerProtector implements Listener {
         if (!plugin.getConfiguration().WORLDGUARD_PROTECT) {
             return;
         }
-        if (!(event.getEntity().getSource() instanceof Player)) {
+        if (!(event.getEntity().getSource() instanceof Player player)) {
             return;
         }
         if (!plugin.hasWG()) {
@@ -108,14 +105,13 @@ public class VillagerProtector implements Listener {
         }
 
         PotionType type = event.getEntity().getBasePotionType();
-        List<PotionType> blacklist = new ArrayList<PotionType>();
+        List<PotionType> blacklist = new ArrayList<>();
         blacklist.add(PotionType.HARMING);
         blacklist.add(PotionType.POISON);
         blacklist.add(PotionType.SLOWNESS);
         blacklist.add(PotionType.WEAKNESS);
 
         Iterator<LivingEntity> iterator = event.getAffectedEntities().iterator();
-        Player player = (Player) event.getEntity().getSource();
         while (iterator.hasNext()) {
             LivingEntity ent = iterator.next();
             if (ent instanceof AbstractVillager && blacklist.contains(type)) {
@@ -135,27 +131,23 @@ public class VillagerProtector implements Listener {
         if (!(event.getEntity() instanceof AbstractVillager)) {
             return;
         }
-        if (plugin.getConfiguration().PROTECT_FROM_MOBS.size() < 1) {
-            return;
-        }
+        if (plugin.getConfiguration().PROTECT_FROM_MOBS.isEmpty()) return;
 
+        Entity damager = event.getDamager();
         boolean isProhibited = false;
+
         if (plugin.getConfiguration().PROTECT_FROM_MOBS.contains(event.getDamager().getType())) {
             isProhibited = true;
-        } else if (event.getDamager() instanceof Projectile) {
-            Projectile projectile = (Projectile) event.getDamager();
-            Entity shooter = (Entity) projectile.getShooter();
-            if (!(shooter instanceof Player)) {
-                if (plugin.getConfiguration().PROTECT_FROM_MOBS.contains(shooter.getType())) {
-                    isProhibited = true;
-                }
+        } else if (damager instanceof Projectile projectile) {
+            if (projectile.getShooter() instanceof Entity shooter &&
+                    !(shooter instanceof Player) &&
+                    plugin.getConfiguration().PROTECT_FROM_MOBS.contains(shooter.getType())) {
+                isProhibited = true;
             }
         }
 
         if (isProhibited) {
             event.setCancelled(true);
         }
-
     }
-
 }
